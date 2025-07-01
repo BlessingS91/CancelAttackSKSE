@@ -1,123 +1,76 @@
 {
-  "version": 3,
+  "version": 6,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 21,
-    "patch": 0
+    "minor": 31
   },
   "configurePresets": [
     {
-      "name": "common",
-      "hidden": true,
-      "cacheVariables": {
-        "SKSE_SUPPORT_XBYAK": "ON"
-      },
-      "binaryDir": "${sourceDir}/build/${presetName}"
-    },
-    {
-      "name": "vcpkg",
-      "hidden": true,
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_OVERLAY_PORTS": "${sourceDir}/cmake/ports/",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
-      }
-    },
-    {
-      "name": "win64",
+      "name": "base",
       "hidden": true,
       "architecture": "x64",
+      "generator": "Visual Studio 17 2022",
       "cacheVariables": {
-        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
-      }
-    },
-    {
-      "name": "msvc",
-      "hidden": true,
-      "cacheVariables": {
+        "BUILD_TESTS": "OFF",
+        "SKSE_SUPPORT_XBYAK": "ON",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_OVERLAY_PORTS": "${sourceDir}/cmake/ports/",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md",
         "CMAKE_CXX_FLAGS": "/EHsc /MP /W4 /WX $penv{CXXFLAGS}"
       },
-      "generator": "Visual Studio 17 2022",
       "vendor": {
         "microsoft.com/VisualStudioSettings/CMake/1.0": {
           "intelliSenseMode": "windows-msvc-x64",
           "enableMicrosoftCodeAnalysis": true,
           "enableClangTidyCodeAnalysis": true
         }
+      },
+      "binaryDir": "${sourceDir}/build/${presetName}"
+    },
+    {
+      "name": "build-release",
+      "inherits": [
+        "base"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     },
     {
-      "name": "skyrim",
-      "hidden": true,
-      "inherits": ["common", "vcpkg", "win64", "msvc"]
+      "name": "build-debug",
+      "inherits": [
+        "base"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
     },
     {
-      "name": "AE",
+      "name": "build-wait-debugger",
+      "inherits": [
+        "build-debug"
+      ],
       "cacheVariables": {
-        "ENABLE_SKYRIM_AE": "ON",
-        "ENABLE_SKYRIM_SE": "OFF",
-        "ENABLE_SKYRIM_VR": "OFF"
-      },
-      "inherits": "skyrim"
-    },
-    {
-      "name": "SE",
-      "cacheVariables": {
-        "ENABLE_SKYRIM_AE": "OFF",
-        "ENABLE_SKYRIM_SE": "ON",
-        "ENABLE_SKYRIM_VR": "OFF"
-      },
-      "inherits": "skyrim"
-    },
-    {
-      "name": "VR",
-      "cacheVariables": {
-        "ENABLE_SKYRIM_AE": "OFF",
-        "ENABLE_SKYRIM_SE": "OFF",
-        "ENABLE_SKYRIM_VR": "ON"
-      },
-      "inherits": "skyrim"
-    },
-    {
-      "name": "ALL",
-      "cacheVariables": {
-        "ENABLE_SKYRIM_AE": "ON",
-        "ENABLE_SKYRIM_SE": "ON",
-        "ENABLE_SKYRIM_VR": "ON"
-      },
-      "inherits": "skyrim"
-    },
-    {
-      "name": "PRE-AE",
-      "cacheVariables": {
-        "ENABLE_SKYRIM_AE": "OFF",
-        "ENABLE_SKYRIM_SE": "ON",
-        "ENABLE_SKYRIM_VR": "ON"
-      },
-      "inherits": "skyrim"
-    },
-    {
-      "name": "FLATRIM",
-      "cacheVariables": {
-        "ENABLE_SKYRIM_AE": "ON",
-        "ENABLE_SKYRIM_SE": "ON",
-        "ENABLE_SKYRIM_VR": "OFF"
-      },
-      "inherits": "skyrim"
-    },
-    {
-      "name": "ALL-TRACY",
-      "cacheVariables": {
-        "TRACY_SUPPORT": "ON"
-      },
-      "inherits": "ALL"
+        "WAIT_FOR_DEBUGGER": "ON"
+      }
     }
   ],
   "buildPresets": [
     {
-      "name": "ALL",
-      "configurePreset": "ALL",
-      "configuration": "Release"
+      "name": "release",
+      "configurePreset": "build-release",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "debug",
+      "configurePreset": "build-debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "wait-debugger",
+      "configurePreset": "build-wait-debugger",
+      "configuration": "Debug"
     }
   ]
 }

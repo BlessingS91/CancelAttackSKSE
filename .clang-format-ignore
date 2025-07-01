@@ -2,3 +2,5 @@
 ./extern/*
 ./include/*
 ./build/*
+./dist/*
+./Skyrim/*
