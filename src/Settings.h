@@ -22,11 +22,18 @@ public:
         get_value(ini, cancelWindow1H, "General", "CancelWindow1H", "; Max ms to allow cancel after 1H attack starts");
         get_value(ini, cancelWindow2H, "General", "CancelWindow2H", "; Max ms to allow cancel after 2H attack starts");
         get_value(ini, perkModFileName, "General", "perkModFileName", "; Plugin name containing the perk");
-        get_value(ini, perkFormId, "General", "perkFormID", "; FormID of the required perk");
+        std::string formStr;
+        get_value(ini, formStr, "General", "perkFormID", "...");
+
+        if (!formStr.empty()) {
+            perkFormId = std::stoul(formStr, nullptr, 0);    // base 0 = auto-detect hex
+        }
         (void)ini.SaveFile(path.c_str());
 
         logger::info("Restrictions, perk mod: {}, perk form: {}", perkModFileName, perkFormId);
+
         cancelPerk = nullptr;
+
         if (!perkModFileName.empty() && perkFormId > 0) {
             if (auto dataHandler = RE::TESDataHandler::GetSingleton()) {
                 cancelPerk = skyrim_cast<RE::BGSPerk*>(
