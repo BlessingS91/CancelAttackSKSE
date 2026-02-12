@@ -116,7 +116,8 @@ void CancelAttackHandler::CancelAttack(RE::PlayerCharacter* player, RE::INPUT_DE
         bool isBlocking = false;
         player->GetGraphVariableBool("IsBlocking", isBlocking);
         player->AsActorState()->actorState2.wantBlocking = 1;
-        if (!isBlocking) player->NotifyAnimationGraph("blockStart");
+        if (!isBlocking)
+            player->NotifyAnimationGraph("blockStart");
         triggerKey = std::make_pair(dev, key);
     } else {
         triggerKey.reset();
@@ -134,7 +135,8 @@ void CancelAttackHandler::HandleTriggerKeyRelease(RE::InputEvent* const* a_event
                 player->AsActorState()->actorState2.wantBlocking = 0;
                 bool isBlocking = false;
                 player->GetGraphVariableBool("IsBlocking", isBlocking);
-                if (isBlocking) player->NotifyAnimationGraph("blockStop");
+                if (isBlocking)
+                    player->NotifyAnimationGraph("blockStop");
                 triggerKey.reset();
             }
         }
@@ -159,6 +161,13 @@ bool CancelAttackHandler::HandleCancelAttempt(RE::InputEvent* const* a_event, RE
         if (trig == TriggerType::kNone)
             continue;
 
+        if (auto* perk = Settings::GetSingleton()->cancelPerk) {
+            if (!player->HasPerk(perk)) {
+                logger::info("Player missing required perk, aborting cancel");
+                return false;    // block cancel attempt
+            }
+        }
+        
         if (IsRestrictedCancelWindow(player) || !TryConsumeStamina(player))
             return (trig == TriggerType::kReadyWeapon);
 
