@@ -1,11 +1,14 @@
 #include "EventListener.h"
-#include "Settings.h"
 #include "Hooks.h"
+#include "Settings.h"
 
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
 void MessageHandler(SKSE::MessagingInterface::Message* message)
 {
     if (message->type == SKSE::MessagingInterface::kDataLoaded) {
+
+        Settings::GetSingleton()->ResolveForms();    // ← THIS IS MISSING
+
         Hooks::Install();
         EventListener::Register();
     }
@@ -50,21 +53,24 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
     spdlog::level::level_enum logLevel = spdlog::level::debug;
 #endif
 
+    log->set_level(logLevel);
+    log->flush_on(spdlog::level::trace);
+    spdlog::set_default_logger(std::move(log));
+    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] [%t] [%s:%#] %v");
+
+    // Load settings AFTER logger exists
     bool loadError = false;
     try {
         const auto settings = Settings::GetSingleton();
         settings->Load();
 
         if (settings->debugLogging) {
-            logLevel = spdlog::level::debug;
+            spdlog::set_level(spdlog::level::debug);    // ← THIS is correct
         }
     } catch (...) {
         loadError = true;
     }
-    log->set_level(logLevel);
-    log->flush_on(spdlog::level::trace);
-    spdlog::set_default_logger(std::move(log));
-    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] [%t] [%s:%#] %v");
+
     if (loadError) {
         logger::warn("Exception caught when loading settings! Default settings will be used");
     }

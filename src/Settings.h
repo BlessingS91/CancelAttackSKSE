@@ -31,21 +31,34 @@ public:
         (void)ini.SaveFile(path.c_str());
 
         logger::info("Restrictions, perk mod: {}, perk form: {}", perkModFileName, perkFormId);
-
-        cancelPerk = nullptr;
-
-        if (!perkModFileName.empty() && perkFormId > 0) {
-            if (auto dataHandler = RE::TESDataHandler::GetSingleton()) {
-                cancelPerk = skyrim_cast<RE::BGSPerk*>(
-                    dataHandler->LookupForm(perkFormId, perkModFileName));
-
-                if (cancelPerk) {
-                    logger::info("Successfully loaded the restriction perk");
-                }
-            }
-        }
     }
 
+    void ResolveForms()
+    {
+        cancelPerk = nullptr;
+
+        if (perkModFileName.empty() || perkFormId == 0) {
+            logger::info("No restriction perk configured");
+            return;
+        }
+
+        auto* dataHandler = RE::TESDataHandler::GetSingleton();
+        if (!dataHandler) {
+            logger::error("TESDataHandler not available");
+            return;
+        }
+
+        cancelPerk = skyrim_cast<RE::BGSPerk*>(
+            dataHandler->LookupForm(perkFormId, perkModFileName));
+
+        if (cancelPerk) {
+            logger::info("Successfully resolved restriction perk");
+        } else {
+            logger::error("Failed to resolve restriction perk ({} | 0x{:X})",
+                          perkModFileName,
+                          perkFormId);
+        }
+    }
     // members
     bool debugLogging{false};
     bool useReadyWeaponButton{true};
